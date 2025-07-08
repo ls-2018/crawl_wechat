@@ -1,0 +1,17 @@
+./dist
+./build
+.idea
+.DS_Store
+setup.pye
+venv
+data
+*.exe
+*.pyc
+temp
+./search/
+clean_temp.json
+search/
+clean.json
+dist
+build
+.eggs

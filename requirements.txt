@@ -1,0 +1,17 @@
+loguru~=0.6.0
+Flask~=2.3.2
+chardet~=5.1.0
+pyperclip~=1.8.2
+requests~=2.32.3
+pymysql~=1.1.1
+urllib3~=1.26.19
+rumps~=0.4.0
+cryptography~=43.0.0
+packaging~=24.1
+modulegraph>=0.19.6
+macholib>=1.16.2
+flask_cors==4.0.1
+pip
+docker
+py2app
+setuptools==70.3.0

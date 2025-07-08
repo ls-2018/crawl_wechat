@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>公众号</title>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="static/css/layui.css" rel="stylesheet"/>
+    <link rel="icon" sizes="any" href="/static/favicon.ico">
+</head>
+<body>
+
+<style>
+    .group {
+        float: left;
+    }
+
+    .layui-form-checkbox[lay-skin=primary] > div {
+        color: red;
+    }
+</style>
+
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-main">
+        <ul class="layui-nav">
+            <div class="layui-form" action="">
+                <div class="layui-form-item">
+                    <input type="checkbox" name="account-display" title=公众号 lay-filter="account-display">
+                    <div class="layui-input-block" style="display: none" id="account-display">
+                        {% for k in user %}
+                            <input type="checkbox" name="account" title="{{ k }}" lay-filter="demo-checkbox-filter"
+                                   value="{{ k }}">
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class=" group">
+                        <label class="layui-form-label">阅读状态</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="read" title="Y" lay-filter="read-radio-filter" value="Y">
+                            <input type="radio" name="read" title="N" lay-filter="read-radio-filter" value="N" checked>
+                            <input type="radio" name="read" title="ALL" lay-filter="read-radio-filter" value="ALL">
+                        </div>
+                    </div>
+                    <div class="  group">
+                        <label class="layui-form-label">收藏</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="fav" title="Y" lay-filter="fav-radio-filter" value="Y">
+                            <input type="radio" name="fav" title="N" lay-filter="fav-radio-filter" value="N" checked>
+                            <input type="radio" name="fav" title="ALL" lay-filter="fav-radio-filter" value="ALL">
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div class="layui-inline">
+                            <label for="demoReload"></label>
+                            <input class="layui-input" name="id" id="demoReload" autocomplete="on">
+                        </div>
+                        <button class="layui-btn" data-type="reload" id="search">搜索</button>
+                    </div>
+                </div>
+
+            </div>
+        </ul>
+
+        <script type="text/html" id="barDemo">
+            <a class="layui-btn layui-btn-xs" lay-event="edit">->已读</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">->未读</a>
+        </script>
+        <table class="layui-hide" id="test" lay-filter="test"></table>
+    </div>
+</div>
+
+<script type="text/html" id="toolbarDemo">
+    <button class="layui-btn layui-btn-sm" lay-event="toRead">标记为已读<span class="layui-badge" id="toRead">0</span></button>
+    <button class="layui-btn layui-btn-sm" lay-event="toNotRead">标记为未读<span class="layui-badge" id="toNotRead">0</span></button>
+
+    <button class="layui-btn layui-btn-sm" lay-event="multiOpen">批量打开<span class="layui-badge" id="multiOpen">0</span></button>
+
+    <button class="layui-btn layui-btn-sm" lay-event="multiFav">批量收藏<span class="layui-badge" id="multiFav">0</span></button>
+    <button class="layui-btn layui-btn-sm" lay-event="multiUnFav">批量取消收藏<span class="layui-badge" id="multiUnFav">0</span></button>
+    <button class="layui-btn layui-btn-sm" lay-event="multiUnFavAndRead">批量取消收藏并已读<span class="layui-badge" id="multiUnFavAndRead">0</span></button>
+    <button class="layui-btn layui-btn-sm">选中<span class="layui-badge" id="check">0</span></button>
+</script>
+<script src="static/layui.js"></script>
+<script>
+    var wheres = {
+        page: 1,
+        account: "[]",
+        fav: 'N',
+        read: 'N',
+        search: ''
+    }
+
+    layui.use(['table', 'layer', 'form',], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var dropdown = layui.dropdown;
+        var $ = layui.$;
+        // 创建渲染实例
+        table.render({
+            elem: '#test',
+            url: 'http://127.0.0.1:{{port}}/data',
+            toolbar: '#toolbarDemo',
+            // {#cellMinWidth: 80,#}
+            // {#totalRow: true, // 开启合计行#}
+            cols: [
+                [
+                    {type: 'checkbox', fixed: 'left'},
+                    {field: 'account_id', title: '_', sort: true, width: 5,},
+                    {field: 'review_id', title: '_', sort: true, width: 5,},
+                    {field: 'account_name', title: '公众号', sort: true, width: 200,},
+                    {field: 'num', title: '序号', width: 60,},
+                    {field: 'author', title: '作者', width: 200,},
+                    {
+                        field: 'datetime',
+                        title: '创建时间',
+                        width: 200,
+                        sort: true,
+                        totalRow: true,
+                        templet: function (d) {
+                            var date = new Date(d.time * 1000);
+                            var year = date.getFullYear();
+                            var mon = date.getMonth() + 1;
+                            var day = date.getDate();
+                            var hour = date.getHours();
+                            var min = date.getMinutes();
+                            var sec = date.getSeconds();
+                            mon = parseInt(mon) < 10 ? "0" + mon : mon;
+                            day = parseInt(day) < 10 ? "0" + day : day;
+                            hour = parseInt(hour) < 10 ? "0" + hour : hour;
+                            min = parseInt(min) < 10 ? "0" + min : min;
+                            sec = parseInt(sec) < 10 ? "0" + sec : sec;
+                            return year + "-" + mon + "-" + day + " " + hour + ":" + min + ":" + sec;
+                        }
+                    },
+                    {
+                        field: 'title',
+                        title: '标题', sort: true,
+                        templet:
+                            function (d) {
+                                return `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.pic_url}" alt="xx" style="width:50px;height:20px"> <a href="${d.doc_url}" target="_blank" style='color:blue'>${d.title}</a>`
+                            }
+                    },
+                    {
+                        field: 'favorite',
+                        title: '收藏',
+                        width: 80,
+                        templet: function (d) {
+                            if (d.favorite === 0) {
+                                return `<input type="checkbox" name="favorite" value=${d.favorite} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="fav-status">   </input>`
+                            }
+                            return `<input type="checkbox" name="favorite" value=${d.favorite} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="fav-status" checked>   </input>`
+                        }
+                    },
+                    {
+                        field: 'read_status',
+                        title: '已读',
+                        width: 80,
+                        templet: function (d) {
+                            if (d.read_status === 0) {
+                                return `<input type="checkbox" name="read_status" value=${d.read_status} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="read-status">   </input>`
+                            }
+                            return `<input type="checkbox" name="read_status" value=${d.read_status} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="read-status" checked>   </input>`
+                        }
+                    },
+                ],
+            ],
+            limits: [20, 25, 40, 80, 200, 300, 500,10000000],
+            limit: 25,
+            id: "testReload",
+            page: true,
+            response: {
+                statusCode: 200 //重新规定成功的状态码为 200，table 组件默认为 0
+            },
+            parseData: function (res) { //将原始数据解析成 table 组件所规定的数据
+                return {
+                    "code": res.status, //解析接口状态
+                    "msg": res.message, //解析提示文本
+                    "count": res.total, //解析数据长度
+                    "data": res.rows.item //解析数据列表
+                };
+            },
+            done: function (res) {
+                $('td').css({'cursor': 'pointer'}); //设置成指针放在表格上换成手指
+                $('table').width('100%');
+                for (var i = 0; i < res.data.length; i++) {
+                    if (res.data[i].id === "${dsBoard.id}") {
+                        $(".layui-table tbody tr").eq(i).attr({"style": "background:#5FB878;color:#FFFFFF"});
+                    }
+                }
+            },
+            error: function (res, msg) {
+                console.log(res, msg);
+            },
+        });
+
+        // 工具栏事件
+        table.on('toolbar(test)', function (obj) {
+            var id = obj.config.id;
+            var data = table.checkStatus(id).data;
+            var over = 0;
+            switch (obj.event) {
+                case 'multiFav':
+                    data.forEach((pre) => {
+                        $.ajax({
+                            url: `/fav-status/up/` + pre.account_id + "@" + pre.review_id,
+                            type: "post",
+                            success: function (res) {
+                                over += 1
+                                $("#multiFav").text(data.length - over)
+                                if (data.length - over === 0) {
+                                    $('#search').click()
+                                }
+                            }
+                        });
+                    })
+                    break;
+                case 'multiUnFav':
+                    data.forEach((pre) => {
+                        $.ajax({
+                            url: `/fav-status/down/` + pre.account_id + "@" + pre.review_id,
+                            type: "post",
+                            success: function (res) {
+                                over += 1
+                                $("#multiUnFav").text(data.length - over)
+                                if (data.length - over === 0) {
+                                    $('#search').click()
+                                }
+                            }
+                        });
+                    })
+                    break;
+                case 'multiUnFavAndRead':
+                    data.forEach((pre) => {
+                        $.ajax({
+                            url: `/fav-status/down/` + pre.account_id + "@" + pre.review_id,
+                            type: "post",
+                            success: function (res) {
+                                over += 1
+                                $("#multiUnFavAndRead").text(data.length - over)
+                                if (data.length - over === 0) {
+                                    $('#search').click()
+                                }
+                            }
+                        });
+                        $.ajax({
+                            url: `/read-status/up/` + pre.account_id + "@" + pre.review_id,
+                            type: "post",
+                            success: function (res) {
+                            }
+                        });
+                    })
+                    break;
+                case 'toRead':
+                    data.forEach((pre) => {
+                        $.ajax({
+                            url: `/read-status/up/` + pre.account_id + "@" + pre.review_id,
+                            type: "post",
+                            success: function (res) {
+                                over += 1
+                                $("#toRead").text(data.length - over)
+                                if (data.length - over === 0) {
+                                    $('#search').click()
+                                }
+                            }
+                        });
+                    })
+                    break;
+                case 'toNotRead':
+                    data.forEach((pre) => {
+                        $.ajax({
+                            url: `/read-status/down/` + pre.account_id + "@" + pre.review_id,
+                            type: "post",
+                            success: function (res) {
+                                over += 1
+                                $("#toNotRead").text(data.length - over)
+                                if (data.length - over === 0) {
+                                    $('#search').click()
+                                }
+                            }
+                        });
+                    })
+                    break;
+                case 'multiOpen':
+                    data.forEach((pre) => {
+                        window.open(pre.doc_url, '_blank')
+                    })
+                    break;
+            }
+        });
+
+
+        $('#search').on('click', function () {
+            console.log(123)
+            wheres.search = document.getElementById("demoReload").value
+            delete wheres["page"]
+            delete wheres["limit"]
+            console.log(wheres)
+            table.reload('testReload', {
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                },
+                where: wheres
+            });
+        });
+        $('#demoReload').on('keydown', function (e) {
+            if (e.keyCode === 13) {
+                $('#search').click()
+            }
+        });
+        form.on('checkbox(demo-checkbox-filter)', function (data) {
+            var elem = data.elem; // 获得 checkbox 原始 DOM 对象
+            if (elem.checked === true) {
+                var acc = JSON.parse(wheres.account)
+                acc.push(elem.value)
+                wheres.account = JSON.stringify(acc)
+            } else {
+                var filteredArray = JSON.parse(wheres.account).filter(item => item !== elem.value);
+                wheres.account = JSON.stringify(filteredArray)
+            }
+            console.log(wheres.account)
+            $('#search').click()
+        });
+        form.on('checkbox(account-display)', function (data) {
+            $("#account-display").toggle()
+        });
+        form.on('radio(read-radio-filter)', function (data) {
+            var elem = data.elem; // 获得 checkbox 原始 DOM 对象
+            wheres.read = elem.value
+            console.log(wheres.read)
+            $('#search').click()
+
+        });
+        form.on('radio(fav-radio-filter)', function (data) {
+            var elem = data.elem; // 获得 checkbox 原始 DOM 对象
+            wheres.fav = elem.value
+            console.log(wheres.fav)
+            $('#search').click()
+
+        });
+        // 状态 - 开关操作
+        form.on('switch(fav-status)', function (obj) {
+            console.log(obj)
+            if (obj.elem.checked) {
+                $.ajax({
+                    url: `/fav-status/up/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    type: "post",
+                    success: function (data) {
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: `/fav-status/down/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    type: "post",
+                    success: function (data) {
+                    }
+                });
+            }
+        });
+        form.on('switch(read-status)', function (obj) {
+            console.log(obj)
+            if (obj.elem.checked) {
+                $.ajax({
+                    url: `/read-status/up/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    type: "post",
+                    success: function (data) {
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: `/read-status/down/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    type: "post",
+                    success: function (data) {
+                    }
+                });
+            }
+        });
+
+
+    });
+</script>
+</body>
+</html>
