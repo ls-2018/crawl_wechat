@@ -5,7 +5,7 @@ import time
 
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
-from insert import mysql, clean
+from sub.insert import mysql
 from sub.log import get_logger
 
 logger = get_logger()

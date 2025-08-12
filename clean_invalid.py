@@ -4,8 +4,7 @@ import json
 import pymysql
 import pymysql.cursors
 
-from insert import mysql
-from sub.server import index
+from sub.insert import mysql
 
 # update `wechat`.`article_info` set read_status=1 where lower(title) like "%规划%";
 keys = [" ui ", ".net", "1024", "12306", "96w", "ai", "aigc", "android", "ansible", "apipost", "apollo", "aws", "c#",

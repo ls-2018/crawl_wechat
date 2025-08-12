@@ -9,8 +9,8 @@ from queue import Queue
 import requests
 import urllib3
 
-from config import config_path, wechat_conf
-from insert import mysql, clean
+from sub.config import config_path, wechat_conf
+from sub.insert import mysql, clean
 from sub.log import get_logger
 
 logger = get_logger()

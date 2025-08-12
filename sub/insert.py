@@ -6,7 +6,7 @@ from collections import defaultdict
 import pymysql
 import pymysql.cursors
 
-from config import mysql_conf
+from .config import mysql_conf
 from sub.log import get_logger
 
 logger = get_logger()

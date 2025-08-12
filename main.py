@@ -9,10 +9,10 @@ import threading
 import time
 import datetime
 
-from config import mysql_conf
-from insert import mysql, logger
+from sub.config import mysql_conf
+from sub.insert import mysql, logger
 from sub.crawl import Crawl
-from sub.server import app, Server
+from sub.server import Server
 import rumps
 from queue import Queue, Empty
 import docker
@@ -125,7 +125,7 @@ socket=/var/run/mysqld/mysqld.sock
         with open(mysql_conf, 'r', encoding='utf8') as f:
             mysql_info = json.loads(f.read())
 
-        cmd = (f'/usr/local/bin/docker run --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {mysql_info["user"]} '
+        cmd = (f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {mysql_info["user"]} '
                f'--password={mysql_info["password"]} '
                f'-h {mysql_info["host"]} '
                f'-P {mysql_info["port"]} '
