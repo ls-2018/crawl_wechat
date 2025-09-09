@@ -214,6 +214,9 @@ class Crawl:
                 if review_id in already_data:
                     non_new_count += 1
                 else:
+                    if 'doc_url' not in item['review']['mpInfo']:
+                        logger.info("%s %s %s not exist doc_url" % (account.account_id, account.account_name, item['review']['mpInfo']['title']))
+                        continue
                     insert_data.append(ArticleItem(
                         account_id=account.account_id,
                         account_name=account.account_name,
