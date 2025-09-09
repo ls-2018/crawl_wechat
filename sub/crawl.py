@@ -17,6 +17,7 @@ logger = get_logger()
 
 os.system('pip3 uninstall urllib3-secure-extra')
 urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class CrawlItem:
@@ -179,6 +180,7 @@ class Crawl:
                 url,
                 headers=self.headers,
                 params=params,
+                verify=False
             )
             data = res.json()
             if data.get('reviews', None) is None and 'err' in json.dumps(data, ensure_ascii=False):
