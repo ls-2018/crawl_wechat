@@ -108,19 +108,18 @@
             cols: [
                 [
                     {type: 'checkbox', fixed: 'left'},
-                    {field: 'account_id', title: '_', sort: true, width: 5,},
-                    {field: 'review_id', title: '_', sort: true, width: 5,},
-                    {field: 'account_name', title: '公众号', sort: true, width: 200,},
+                    // {field: 'fakeid', title: '_', sort: true, width: 5,},
                     {field: 'num', title: '序号', width: 60,},
-                    {field: 'author', title: '作者', width: 200,},
+                    {field: 'account_name', title: '公众号', sort: true, width: 200,},
+                    {field: 'author_name', title: '作者', width: 200,},
                     {
-                        field: 'datetime',
+                        field: 'create_time',
                         title: '创建时间',
                         width: 200,
                         sort: true,
                         totalRow: true,
                         templet: function (d) {
-                            var date = new Date(d.time * 1000);
+                            var date = new Date(d.create_time * 1000);
                             var year = date.getFullYear();
                             var mon = date.getMonth() + 1;
                             var day = date.getDate();
@@ -140,7 +139,7 @@
                         title: '标题', sort: true,
                         templet:
                             function (d) {
-                                return `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.pic_url}" alt="xx" style="width:50px;height:20px"> <a href="${d.doc_url}" target="_blank" style='color:blue'>${d.title}</a>`
+                                return  `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
                             }
                     },
                     {
@@ -149,9 +148,9 @@
                         width: 80,
                         templet: function (d) {
                             if (d.favorite === 0) {
-                                return `<input type="checkbox" name="favorite" value=${d.favorite} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="fav-status">   </input>`
+                                return `<input type="checkbox" name="favorite" value=${d.favorite} db_id=${d.id}  lay-skin="switch" lay-filter="fav-status">   </input>`
                             }
-                            return `<input type="checkbox" name="favorite" value=${d.favorite} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="fav-status" checked>   </input>`
+                            return `<input type="checkbox" name="favorite" value=${d.favorite} db_id=${d.id}  lay-skin="switch" lay-filter="fav-status" checked>   </input>`
                         }
                     },
                     {
@@ -160,9 +159,9 @@
                         width: 80,
                         templet: function (d) {
                             if (d.read_status === 0) {
-                                return `<input type="checkbox" name="read_status" value=${d.read_status} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="read-status">   </input>`
+                                return `<input type="checkbox" name="read_status" value=${d.read_status} db_id=${d.id}  lay-skin="switch" lay-filter="read-status">   </input>`
                             }
-                            return `<input type="checkbox" name="read_status" value=${d.read_status} account_id=${d.account_id} review_id=${d.review_id} lay-skin="switch" lay-filter="read-status" checked>   </input>`
+                            return `<input type="checkbox" name="read_status" value=${d.read_status} db_id=${d.id}  lay-skin="switch" lay-filter="read-status" checked>   </input>`
                         }
                     },
                 ],
@@ -205,7 +204,7 @@
                 case 'multiFav':
                     data.forEach((pre) => {
                         $.ajax({
-                            url: `/fav-status/up/` + pre.account_id + "@" + pre.review_id,
+                            url: `/fav-status/up/` + pre.id  ,
                             type: "post",
                             success: function (res) {
                                 over += 1
@@ -220,7 +219,7 @@
                 case 'multiUnFav':
                     data.forEach((pre) => {
                         $.ajax({
-                            url: `/fav-status/down/` + pre.account_id + "@" + pre.review_id,
+                            url: `/fav-status/down/` + pre.id,
                             type: "post",
                             success: function (res) {
                                 over += 1
@@ -235,7 +234,7 @@
                 case 'multiUnFavAndRead':
                     data.forEach((pre) => {
                         $.ajax({
-                            url: `/fav-status/down/` + pre.account_id + "@" + pre.review_id,
+                            url: `/fav-status/down/` + pre.id,
                             type: "post",
                             success: function (res) {
                                 over += 1
@@ -246,7 +245,7 @@
                             }
                         });
                         $.ajax({
-                            url: `/read-status/up/` + pre.account_id + "@" + pre.review_id,
+                            url: `/read-status/up/` + pre.id,
                             type: "post",
                             success: function (res) {
                             }
@@ -256,7 +255,7 @@
                 case 'toRead':
                     data.forEach((pre) => {
                         $.ajax({
-                            url: `/read-status/up/` + pre.account_id + "@" + pre.review_id,
+                            url: `/read-status/up/` + pre.id,
                             type: "post",
                             success: function (res) {
                                 over += 1
@@ -271,7 +270,7 @@
                 case 'toNotRead':
                     data.forEach((pre) => {
                         $.ajax({
-                            url: `/read-status/down/` + pre.account_id + "@" + pre.review_id,
+                            url: `/read-status/down/` + pre.id,
                             type: "post",
                             success: function (res) {
                                 over += 1
@@ -345,14 +344,14 @@
             console.log(obj)
             if (obj.elem.checked) {
                 $.ajax({
-                    url: `/fav-status/up/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    url: `/fav-status/up/${obj.elem.getAttribute("db_id")}`,
                     type: "post",
                     success: function (data) {
                     }
                 });
             } else {
                 $.ajax({
-                    url: `/fav-status/down/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    url: `/fav-status/down/${obj.elem.getAttribute("db_id")}`,
                     type: "post",
                     success: function (data) {
                     }
@@ -363,14 +362,14 @@
             console.log(obj)
             if (obj.elem.checked) {
                 $.ajax({
-                    url: `/read-status/up/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    url: `/read-status/up/${obj.elem.getAttribute("db_id")}`,
                     type: "post",
                     success: function (data) {
                     }
                 });
             } else {
                 $.ajax({
-                    url: `/read-status/down/${obj.elem.getAttribute("account_id")}@${obj.elem.getAttribute("review_id")}`,
+                    url: `/read-status/down/${obj.elem.getAttribute("db_id")}`,
                     type: "post",
                     success: function (data) {
                     }

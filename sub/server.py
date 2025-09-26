@@ -3,8 +3,9 @@ import json
 import os.path
 import time
 
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, request, render_template
 from flask_cors import CORS
+
 from sub.insert import mysql
 from sub.log import get_logger
 
@@ -90,14 +91,13 @@ def data():
         if xxx != 'where':
             xxx += 'and'
         xxx += ' account_name in %s '
-        # args.append(json.dumps(accounts, ensure_ascii=False))
         args.append(accounts)
 
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
         if xxx == 'where':
             xxx = ''
         cursor.execute(
-            f"select count(*) as count from `wechat`.`article_info` {xxx}  order by `time` desc", args=args
+            f"select count(*) as count from `wechat`.`article_info` {xxx}  order by `create_time` desc", args=args
         )
         res = cursor.fetchone()
         b['total'] = res['count']
@@ -106,53 +106,41 @@ def data():
         asd.append(limit)
         asd.append(offset)
         cursor.execute(
-            f"select * from `wechat`.`article_info`  {xxx} order by `time` desc limit %s offset %s ", args=asd
+            f"select * from `wechat`.`article_info`  {xxx} order by `create_time` desc limit %s offset %s ", args=asd
         )
         res = cursor.fetchall()
         b['rows']["item"] = res
         for i, _ in enumerate(res):
             res[i]['num'] = i
-    return jsonify(b)
+    return json.dumps(b, ensure_ascii=False, indent=4)
 
 
-@app.route("/fav-status/up/<info>", methods=['POST'])
-def favstatusup(info):
-    account_id, review_id = info.split("@")
+@app.route("/fav-status/up/<_id>", methods=['POST'])
+def favstatusup(_id):
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(
-            f"update `wechat`.`article_info` set favorite=1 where account_id=%s and review_id=%s",
-            args=(account_id, review_id,))
+        cursor.execute(f"update `wechat`.`article_info` set favorite=1 where id=%s", args=(_id,))
     return "ok"
 
 
-@app.route("/fav-status/down/<info>", methods=['POST'])
-def favstatusdown(info):
-    account_id, review_id = info.split("@")
+@app.route("/fav-status/down/<_id>", methods=['POST'])
+def favstatusdown(_id):
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(
-            f"update `wechat`.`article_info` set favorite=0 where account_id=%s and review_id=%s",
-            args=(account_id, review_id,))
+        cursor.execute(f"update `wechat`.`article_info` set favorite=0 where id=%s", args=(_id,))
     return "ok"
 
 
-@app.route("/read-status/up/<info>", methods=['POST'])
-def readstatusup(info):
-    account_id, review_id = info.split("@")
+@app.route("/read-status/up/<_id>", methods=['POST'])
+def readstatusup(_id):
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(
-            f"update `wechat`.`article_info` set read_status=1 where account_id=%s and review_id=%s",
-            args=(account_id, review_id,))
+        cursor.execute(f"update `wechat`.`article_info` set read_status=1 where id=%s", args=(_id,))
     return "ok"
 
 
-@app.route("/read-status/down/<info>", methods=['POST'])
-def readstatusdown(info):
-    account_id, review_id = info.split("@")
+@app.route("/read-status/down/<_id>", methods=['POST'])
+def readstatusdown(_id):
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(
-            f"update `wechat`.`article_info` set read_status=0 where account_id=%s and review_id=%s",
-            args=(account_id, review_id,)
-        )
+        cursor.execute(f"update `wechat`.`article_info` set read_status=0 where id=%s", args=(_id,)
+                       )
     return "ok"
 
 
