@@ -27,10 +27,7 @@ app = Flask(
 )
 
 app.logger = get_logger()
-
-CORS(app, supports_credentials=True)
-
-app = Flask(__name__, template_folder='templates', static_folder='static')
+CORS(app, resources={r'*': {'origins': '*', 'methods': 'GET', 'allow_headers': 'Content-Type', 'supports_credentials': True}})
 
 port = 0
 
@@ -48,11 +45,15 @@ def index():
     return render_template("index.html", **content)
 
 
+remote_addr = '127.0.0.1'
+
 @app.route('/data')
 def data():
     b = copy.deepcopy(TEMPLATE)
     page = int(request.args.get('page'))
     limit = int(request.args.get('limit'))
+    if request.remote_addr != remote_addr and limit > 200:
+        limit = 200
     offset = (page - 1) * limit
     xxx = 'where'
     args = []
@@ -117,6 +118,8 @@ def data():
 
 @app.route("/fav-status/up/<_id>", methods=['POST'])
 def favstatusup(_id):
+    if request.remote_addr != remote_addr:
+        return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
         cursor.execute(f"update `wechat`.`article_info` set favorite=1 where id=%s", args=(_id,))
     return "ok"
@@ -124,6 +127,8 @@ def favstatusup(_id):
 
 @app.route("/fav-status/down/<_id>", methods=['POST'])
 def favstatusdown(_id):
+    if request.remote_addr != remote_addr:
+        return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
         cursor.execute(f"update `wechat`.`article_info` set favorite=0 where id=%s", args=(_id,))
     return "ok"
@@ -131,6 +136,8 @@ def favstatusdown(_id):
 
 @app.route("/read-status/up/<_id>", methods=['POST'])
 def readstatusup(_id):
+    if request.remote_addr != remote_addr:
+        return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
         cursor.execute(f"update `wechat`.`article_info` set read_status=1 where id=%s", args=(_id,))
     return "ok"
@@ -138,15 +145,12 @@ def readstatusup(_id):
 
 @app.route("/read-status/down/<_id>", methods=['POST'])
 def readstatusdown(_id):
+    if request.remote_addr != remote_addr:
+        return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
         cursor.execute(f"update `wechat`.`article_info` set read_status=0 where id=%s", args=(_id,)
                        )
     return "ok"
-
-
-@app.route("/after_hours_reminder", methods=['GET'])
-def after_hours_reminder():
-    return "<h1>及时打卡</h1>"
 
 
 class Server:
