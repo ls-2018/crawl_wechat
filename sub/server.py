@@ -27,9 +27,12 @@ app = Flask(
 )
 
 app.logger = get_logger()
-CORS(app, resources={r'*': {'origins': '*', 'methods': 'GET', 'allow_headers': 'Content-Type', 'supports_credentials': True}})
+CORS(app, resources={
+    r'*': {'origins': '*', 'methods': 'GET', 'allow_headers': 'Content-Type', 'supports_credentials': True}})
 
 port = 0
+
+remote_addr = '127.0.0.1'
 
 
 @app.route('/')
@@ -40,12 +43,13 @@ def index():
 
     content = {
         'user': user,
-        "port": port
+        "port": port,
+        'addr': '127.0.0.1',
     }
+    if request.remote_addr != remote_addr:
+        content['addr'] = request.host.split(':')[0]
     return render_template("index.html", **content)
 
-
-remote_addr = '127.0.0.1'
 
 @app.route('/data')
 def data():
