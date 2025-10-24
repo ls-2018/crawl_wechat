@@ -100,7 +100,9 @@ socket=/var/run/mysqld/mysqld.sock
             f'--password={mysql_info["password"]} '
             f'-h {mysql_info["host"]} '
             f'-P {mysql_info["port"]} '
-            f'{mysql_info["database"]} > /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql"')
+            f'{mysql_info["database"]} > /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
+            f'mv /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
+            f'"')
         logger.info(cmd)
         out = subprocess.getoutput(cmd)
         self.send_message("backup", out)
