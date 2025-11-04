@@ -136,11 +136,17 @@
                     },
                     {
                         field: 'title',
-                        title: '标题', sort: true,
+                        title: '标题',
+                        sort: true,
                         templet:
                             function (d) {
                                 return  `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
                             }
+                    },
+                    {
+                        field: 'link',
+                        title: '链接',
+                        width: 1,
                     },
                     {
                         field: 'favorite',
