@@ -51,14 +51,14 @@ class PomodoroApp(rumps.App):
 
     def backup(self, sender):
         d = datetime.datetime.now()
-
+        date = f"{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}"
         cmd = (
             f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {db_user} '
             f'--password={db_password} '
             f'-h {db_host} '
             f'-P {db_port} '
-            f'{query_db} > /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
-            f'mv /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
+            f'{query_db} > /data/{date}-{query_db}.sql.pending ;'
+            f'mv /data/{date}-{query_db}.sql.pending /data/{date}-{query_db}.sql'
             f'"')
         logger.info(cmd)
         out = subprocess.getoutput(cmd)
@@ -69,12 +69,12 @@ class PomodoroApp(rumps.App):
             f'--password={db_password} '
             f'-h {db_host} '
             f'-P {db_port} '
-            f'{crawl_db} > /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
-            f'mv /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
+            f'{crawl_db} > /data/{date}-{crawl_db}.sql.pending ;'
+            f'mv /data/{date}-{crawl_db}.sql.pending /data/{date}-{crawl_db}.sql'
             f'"')
         logger.info(cmd)
         out = subprocess.getoutput(cmd)
-        self.send_message("backup crawl", out)
+        self.send_message(f"backup {crawl_db}", out)
 
     def open(self, sender):
         self.ui_server.openChrome()
