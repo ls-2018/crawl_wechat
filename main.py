@@ -53,8 +53,8 @@ class PomodoroApp(rumps.App):
         d = datetime.datetime.now()
 
         cmd = (
-            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {user} '
-            f'--password={password} '
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {db_user} '
+            f'--password={db_password} '
             f'-h {db_host} '
             f'-P {db_port} '
             f'{query_db} > /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
@@ -65,8 +65,8 @@ class PomodoroApp(rumps.App):
         self.send_message(f"backup {query_db}", out)
 
         cmd = (
-            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {user} '
-            f'--password={password} '
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {db_user} '
+            f'--password={db_password} '
             f'-h {db_host} '
             f'-P {db_port} '
             f'{crawl_db} > /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
