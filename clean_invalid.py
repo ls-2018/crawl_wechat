@@ -4,6 +4,7 @@ import json
 import pymysql
 import pymysql.cursors
 
+from sub.config import *
 from sub.insert import mysql
 
 # update `wechat`.`article_info` set read_status=1 where lower(title) like "%规划%";
@@ -36,7 +37,7 @@ def export_invalid():
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
         for x in keys:
             key = f'%{x}%'
-            sql = f"select * from `wechat`.`article_info` where lower(title) like %s and read_status = 0 and favorite = 0;"
+            sql = f"select * from `{query_db}`.`{query_table}` where lower(title) like %s and read_status = 0 and favorite = 0;"
             cursor.execute(sql, (key,))
 
             user = {}

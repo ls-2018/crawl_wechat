@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 import datetime
-import json
 import multiprocessing
 import random
 import subprocess
 import threading
+
 import rumps
 
-from sub.config import mysql_conf
+from sub.config import *
 from sub.crawl import Crawl
-from sub.insert import mysql, logger
+from sub.insert import logger
 from sub.server import Server
 
 port = random.randint(18000, 19000)
@@ -51,28 +51,26 @@ class PomodoroApp(rumps.App):
 
     def backup(self, sender):
         d = datetime.datetime.now()
-        with open(mysql_conf, 'r', encoding='utf8') as f:
-            mysql_info = json.loads(f.read())
 
         cmd = (
-            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {mysql_info["user"]} '
-            f'--password={mysql_info["password"]} '
-            f'-h {mysql_info["host"]} '
-            f'-P {mysql_info["port"]} '
-            f'{mysql_info["database"]} > /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
-            f'mv /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/wechat-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {user} '
+            f'--password={password} '
+            f'-h {db_host} '
+            f'-P {db_port} '
+            f'{query_db} > /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
+            f'mv /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/{query_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
             f'"')
         logger.info(cmd)
         out = subprocess.getoutput(cmd)
-        self.send_message("backup wechat", out)
+        self.send_message(f"backup {query_db}", out)
 
         cmd = (
-            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {mysql_info["user"]} '
-            f'--password={mysql_info["password"]} '
-            f'-h {mysql_info["host"]} '
-            f'-P {mysql_info["port"]} '
-            f'{mysql_info["database"]} > /data/wechat-article-exporter-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
-            f'mv /data/wechat-article-exporter-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/wechat-article-exporter-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {user} '
+            f'--password={password} '
+            f'-h {db_host} '
+            f'-P {db_port} '
+            f'{crawl_db} > /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
+            f'mv /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/{crawl_db}-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
             f'"')
         logger.info(cmd)
         out = subprocess.getoutput(cmd)

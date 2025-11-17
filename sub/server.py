@@ -1,11 +1,11 @@
 import copy
-import json
 import os.path
 import time
 
 from flask import Flask, request, render_template
 from flask_cors import CORS
 
+from sub.config import *
 from sub.insert import mysql
 from sub.log import get_logger
 
@@ -38,7 +38,7 @@ remote_addr = '127.0.0.1'
 @app.route('/')
 def index():
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute("select account_name from wechat.article_info group by account_name;")
+        cursor.execute(f"select account_name from `{query_db}`.`{query_table}` group by account_name;")
         user = [item["account_name"] for item in cursor.fetchall()]
 
     content = {
@@ -102,7 +102,7 @@ def data():
         if xxx == 'where':
             xxx = ''
         cursor.execute(
-            f"select count(*) as count from `wechat`.`article_info` {xxx}  order by `create_time` desc", args=args
+            f"select count(*) as count from `{query_db}`.`{query_table}` {xxx}  order by `create_time` desc", args=args
         )
         res = cursor.fetchone()
         b['total'] = res['count']
@@ -111,7 +111,7 @@ def data():
         asd.append(limit)
         asd.append(offset)
         cursor.execute(
-            f"select * from `wechat`.`article_info`  {xxx} order by `create_time` desc limit %s offset %s ", args=asd
+            f"select * from `{query_db}`.`{query_table}`  {xxx} order by `create_time` desc limit %s offset %s ", args=asd
         )
         res = cursor.fetchall()
         b['rows']["item"] = res
@@ -125,7 +125,7 @@ def favstatusup(_id):
     if request.remote_addr != remote_addr:
         return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(f"update `wechat`.`article_info` set favorite=1 where id=%s", args=(_id,))
+        cursor.execute(f"update `{query_db}`.`{query_table}` set favorite=1 where id=%s", args=(_id,))
     return "ok"
 
 
@@ -134,7 +134,7 @@ def favstatusdown(_id):
     if request.remote_addr != remote_addr:
         return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(f"update `wechat`.`article_info` set favorite=0 where id=%s", args=(_id,))
+        cursor.execute(f"update `{query_db}`.`{query_table}` set favorite=0 where id=%s", args=(_id,))
     return "ok"
 
 
@@ -143,7 +143,7 @@ def readstatusup(_id):
     if request.remote_addr != remote_addr:
         return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(f"update `wechat`.`article_info` set read_status=1 where id=%s", args=(_id,))
+        cursor.execute(f"update `{query_db}`.`{query_table}` set read_status=1 where id=%s", args=(_id,))
     return "ok"
 
 
@@ -152,7 +152,7 @@ def readstatusdown(_id):
     if request.remote_addr != remote_addr:
         return 'ok'
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute(f"update `wechat`.`article_info` set read_status=0 where id=%s", args=(_id,)
+        cursor.execute(f"update `{query_db}`.`{query_table}` set read_status=0 where id=%s", args=(_id,)
                        )
     return "ok"
 

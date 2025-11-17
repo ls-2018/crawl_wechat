@@ -1,28 +1,24 @@
 import contextlib
-import json
 from collections import defaultdict
 
 import pymysql
 import pymysql.cursors
 
-from sub.config import mysql_conf
+from sub.config import *
 from sub.log import get_logger
 
 logger = get_logger()
-
-with open(mysql_conf, 'r', encoding='utf8') as f:
-    mysql_info = json.loads(f.read())
 
 
 # 定义上下文管理器，连接后自动关闭连接
 @contextlib.contextmanager
 def mysql(
-        host=mysql_info['host'],
-        port=mysql_info['port'],
-        user=mysql_info['user'],
-        passwd=mysql_info['password'],
-        db=mysql_info['database'],
-        charset='utf8mb4'
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        passwd=db_password,
+        db=query_db,
+        charset=db_charset
 ):
     conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=db, charset=charset, autocommit=True,
                            write_timeout=60, connect_timeout=60, read_timeout=60)
@@ -37,7 +33,7 @@ def mysql(
 
 def exists(account, _id):
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute("select count(*) as count from article_info where id=%s and public_account=%s",
+        cursor.execute(f"select count(*) as count from `{query_db}`.`{query_table}` where id=%s and public_account=%s",
                        args=(_id, account))
         # row_count = cursor.execute("select * from stu")
         if cursor.fetchone().get("count") > 0:
@@ -68,7 +64,7 @@ class ArticleItem:
 def insert(cursor: pymysql.cursors.DictCursor, obj: ArticleItem):
     # with mysql() as cursor:  # type: pymysql.cursors.DictCursor
     cursor.execute(
-        r"INSERT INTO `wechat`.`article_info` ( `aid`,`fakeid`, `account_name`, `author_name`, `title`, "
+        f"INSERT INTO `{query_db}`.`{query_table}` ( `aid`,`fakeid`, `account_name`, `author_name`, `title`, "
         r"`create_time`, `link`,`read_status`, `favorite`,`cover`) VALUES ("
         r"%s,%s,%s,%s,%s,"
         r"%s,%s,%s,%s,%s);",
@@ -82,7 +78,7 @@ def insert(cursor: pymysql.cursors.DictCursor, obj: ArticleItem):
 def clean():
     x = defaultdict(list)
     with mysql() as cursor:  # type: pymysql.cursors.DictCursor
-        cursor.execute("select * from article_info order by `create_time` desc;")
+        cursor.execute(f"select * from `{query_db}`.`{query_table}` order by `create_time` desc;")
         for item in cursor.fetchall():
             # item['title'] = item['title'].replace('\xa0', ' ')
             x[item['title'].lower()].append(item)
@@ -102,13 +98,13 @@ def clean():
                         if item['read_status'] == 1:
                             continue
                         cursor.execute(
-                            "update `wechat`.`article_info` set read_status=1 where id=%s",
+                            f"update `{query_db}`.`{query_table}` set read_status=1 where id=%s",
                             args=(item['id'],)
                         )
                 else:
                     for item in vs[1:]:
                         cursor.execute(
-                            "update `wechat`.`article_info` set read_status=1 where id=%s",
+                            f"update `{query_db}`.`{query_table}` set read_status=1 where id=%s",
                             args=(item['id'],)
                         )
 
