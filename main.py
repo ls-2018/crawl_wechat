@@ -2,13 +2,9 @@
 import datetime
 import json
 import multiprocessing
-import os
 import random
 import subprocess
 import threading
-import time
-
-import docker
 import rumps
 
 from sub.config import mysql_conf
@@ -22,43 +18,6 @@ off_check = False
 
 
 class PomodoroApp(rumps.App):
-
-    def init(self, sender):
-        ready = False
-        client = docker.APIClient(base_url='unix:///var/run/docker.sock', version='auto')
-        for data in client.containers(all=True):
-            if data['Names'][0] == '/wechat-mysql':
-                ready = True
-                break
-        if not ready:
-            base_path = '/Users/acejilam/data/wechat-mysql'
-
-            data = '''[mysqld]
-host-cache-size=0
-skip-name-resolve
-datadir=/etc/mysql/data/
-socket=/var/run/mysqld/mysqld.sock
-secure-file-priv=/var/lib/mysql-files
-user=mysql
-pid-file=/var/run/mysqld/mysqld.pid
-[client]
-socket=/var/run/mysqld/mysqld.sock
-!includedir /etc/mysql/conf.d/
-'''
-            try:
-                os.makedirs(base_path, exist_ok=True)
-            except Exception as e:
-                logger.error(e)
-                pass
-            with open(os.path.join(base_path, 'my.cnf'), 'w', encoding='utf8') as f:
-                f.write(data)
-
-            os.system(
-                f"docker run -p 18889:3306 --name wechat-mysql --restart=always -e MYSQL_ROOT_PASSWORD=root -v {os.path.join(base_path, 'my.cnf')}:/etc/my.cnf -v {os.path.join(base_path, 'data')}:/etc/mysql/data/ -v {os.path.join(base_path, 'conf')}:/etc/mysql/mysql.conf.d/ -d registry.cn-hangzhou.aliyuncs.com/acejilam/mysql:8"
-            )
-            time.sleep(3)
-            with mysql() as cursor:
-                cursor.execute('CREATE DATABASE `wechat`')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -105,7 +64,19 @@ socket=/var/run/mysqld/mysqld.sock
             f'"')
         logger.info(cmd)
         out = subprocess.getoutput(cmd)
-        self.send_message("backup", out)
+        self.send_message("backup wechat", out)
+
+        cmd = (
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v /Users/acejilam/Desktop:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {mysql_info["user"]} '
+            f'--password={mysql_info["password"]} '
+            f'-h {mysql_info["host"]} '
+            f'-P {mysql_info["port"]} '
+            f'{mysql_info["database"]} > /data/wechat-article-exporter-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending ;'
+            f'mv /data/wechat-article-exporter-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql.pending /data/wechat-article-exporter-{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}.sql'
+            f'"')
+        logger.info(cmd)
+        out = subprocess.getoutput(cmd)
+        self.send_message("backup crawl", out)
 
     def open(self, sender):
         self.ui_server.openChrome()
@@ -128,7 +99,6 @@ socket=/var/run/mysqld/mysqld.sock
             )
             self.crawl_thread.start()
         else:
-            self.crawl.need_crawl = not self.crawl.need_crawl
             self.app.title = ""
 
     def flask(self, obj):

@@ -1,7 +1,7 @@
 import json
 import os
 
-from sub.config import config_path, download_path, link_cache
+from sub.config import config_path, link_cache, mysql_conf, crawl_info_table, crawl_article_table
 from sub.insert import mysql, clean, insert, ArticleItem
 from sub.log import get_logger
 
@@ -9,12 +9,14 @@ logger = get_logger()
 
 
 class Crawl:
-    def __init__(self, ):
+    def __init__(self):
         self.handled_count = 0
         self.count = 0
         self.set_title = None
         self.lastFile = ''
         self.user_map = {}
+        with open(mysql_conf, 'r', encoding='utf8') as f:
+            self.mysql_info = json.loads(f.read())
 
         try:
             os.mkdir(config_path)
@@ -26,66 +28,55 @@ class Crawl:
 
     def run(self, callback, set_title, send_message):
         try:
-            with mysql() as cursor:
-                self.set_title = set_title
-                lastFile = ""
-                lastTime = 0
-                for file in os.listdir(download_path):
-                    if file.startswith('exporter.wxdown.online'):
-                        if os.stat(os.path.join(download_path, file)).st_ctime > lastTime:
-                            lastFile = os.path.join(download_path, file)
-                            lastTime = os.stat(lastFile).st_ctime
+            with mysql(db=self.mysql_info['crawl_db']) as crawl_cursor:
+                with mysql() as cursor:
+                    self.set_title = set_title
+                    user_map = {}
+                    crawl_cursor.execute(
+                        f"select fakeid,nickname from `{self.mysql_info['crawl_db']}`.`{crawl_info_table}`")
+                    for item in crawl_cursor.fetchall():
+                        user_map[item['fakeid']] = item['nickname']
+                    self.user_map = user_map
+                    self.count = len(user_map)
+                    self.handled_count = 0
 
-                self.lastFile = lastFile
-                if self.lastFile == "":
-                    send_message("error", "file 不存在")
+                    links = self.get_link_cache()
+                    need_insert = []
+                    crawl_cursor.execute(
+                        f"select * from `{self.mysql_info['crawl_db']}`.`{crawl_article_table}`")
+                    res = crawl_cursor.fetchall()
+                    for item in res:
+                        if item['is_deleted']== 1:
+                            continue
+                        if item['link'] in links:
+                            continue
+                        need_insert.append(item)
+
+                    for item in need_insert:
+                        if self.set_title:
+                            self.set_title("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
+                        obj = ArticleItem(
+                            aid=item['aid'],
+                            fakeid=item['fakeid'],
+                            account_name=self.user_map[item['fakeid']],
+                            author_name=item['author_name'],
+                            title=item['title'],
+                            cover=item['cover'],
+                            create_time=item['create_time'],
+                            link=item['link'],
+                            read_status=0,
+                            favorite=0,
+                        )
+                        links.add(item['link'])
+                        logger.info("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
+                        logger.info(obj)
+                        insert(cursor, obj)
+                        self.handled_count += 1
+                    self.save_link_cache(links)
                     if callback:
                         callback()
-                    return
-                logger.info("last file is {}".format(lastFile))
-                user_map = {}
-                with open(lastFile, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    for item in data['info']:
-                        user_map[item['fakeid']] = item['nickname']
-                self.user_map = user_map
-                self.count = len(user_map)
-                self.handled_count = 0
-
-                links = self.get_link_cache()
-                need_insert = []
-                for item in data["article"]:
-                    if item.get('is_deleted', False):
-                        continue
-                    if item['link'] in links:
-                        continue
-                    need_insert.append(item)
-
-                for item in need_insert:
-                    if self.set_title:
-                        self.set_title("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
-                    obj = ArticleItem(
-                        aid=item['aid'],
-                        fakeid=item['fakeid'],
-                        account_name=self.user_map[item['fakeid']],
-                        author_name=item['author_name'],
-                        title=item['title'],
-                        cover=item['cover'],
-                        create_time=item['create_time'],
-                        link=item['link'],
-                        read_status=0,
-                        favorite=0,
-                    )
-                    links.add(item['link'])
-                    logger.info("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
-                    logger.info(obj)
-                    insert(cursor, obj)
-                    self.handled_count += 1
-                self.save_link_cache(links)
-                if callback:
-                    callback()
-                send_message("sync", "over")
-                clean()
+                    send_message("sync", "over")
+                    clean()
         except Exception as e:
             logger.error(e)
             send_message("error", e)
