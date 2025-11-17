@@ -13,12 +13,7 @@ logger = get_logger()
 # 定义上下文管理器，连接后自动关闭连接
 @contextlib.contextmanager
 def mysql(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        passwd=db_password,
-        db=query_db,
-        charset=db_charset
+        host=db_host, port=db_port, user=db_user, passwd=db_password, db=query_db, charset=db_charset
 ):
     conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=db, charset=charset, autocommit=True,
                            write_timeout=60, connect_timeout=60, read_timeout=60)
