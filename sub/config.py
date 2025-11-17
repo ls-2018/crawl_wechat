@@ -1,7 +1,7 @@
 import json
 import os.path
 
-_config_path = '/Volumes/Tf/config/wechat'
+_config_path = '/Users/acejilam/Documents/TfBak/config/wechat'
 
 try:
     os.mkdir(_config_path)
