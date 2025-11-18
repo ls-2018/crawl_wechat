@@ -29,8 +29,8 @@
                     <input type="checkbox" name="account-display" title=公众号 lay-filter="account-display">
                     <div class="layui-input-block" style="display: none" id="account-display">
                         {% for k in user %}
-                            <input type="checkbox" name="account" title="{{ k }}" lay-filter="demo-checkbox-filter"
-                                   value="{{ k }}">
+                        <input type="checkbox" name="account" title="{{ k }}" lay-filter="demo-checkbox-filter"
+                               value="{{ k }}">
                         {% endfor %}
                     </div>
                 </div>
@@ -73,14 +73,21 @@
 </div>
 
 <script type="text/html" id="toolbarDemo">
-    <button class="layui-btn layui-btn-sm" lay-event="toRead">标记为已读<span class="layui-badge" id="toRead">0</span></button>
-    <button class="layui-btn layui-btn-sm" lay-event="toNotRead">标记为未读<span class="layui-badge" id="toNotRead">0</span></button>
+    <button class="layui-btn layui-btn-sm" lay-event="toRead">标记为已读<span class="layui-badge" id="toRead">0</span>
+    </button>
+    <button class="layui-btn layui-btn-sm" lay-event="toNotRead">标记为未读<span class="layui-badge"
+                                                                                 id="toNotRead">0</span></button>
 
-    <button class="layui-btn layui-btn-sm" lay-event="multiOpen">批量打开<span class="layui-badge" id="multiOpen">0</span></button>
+    <button class="layui-btn layui-btn-sm" lay-event="multiOpen">批量打开<span class="layui-badge"
+                                                                               id="multiOpen">0</span></button>
 
-    <button class="layui-btn layui-btn-sm" lay-event="multiFav">批量收藏<span class="layui-badge" id="multiFav">0</span></button>
-    <button class="layui-btn layui-btn-sm" lay-event="multiUnFav">批量取消收藏<span class="layui-badge" id="multiUnFav">0</span></button>
-    <button class="layui-btn layui-btn-sm" lay-event="multiUnFavAndRead">批量取消收藏并已读<span class="layui-badge" id="multiUnFavAndRead">0</span></button>
+    <button class="layui-btn layui-btn-sm" lay-event="multiFav">批量收藏<span class="layui-badge" id="multiFav">0</span>
+    </button>
+    <button class="layui-btn layui-btn-sm" lay-event="multiUnFav">批量取消收藏<span class="layui-badge" id="multiUnFav">0</span>
+    </button>
+    <button class="layui-btn layui-btn-sm" lay-event="multiUnFavAndRead">批量取消收藏并已读<span class="layui-badge"
+                                                                                                 id="multiUnFavAndRead">0</span>
+    </button>
     <button class="layui-btn layui-btn-sm">选中<span class="layui-badge" id="check">0</span></button>
 </script>
 <script src="static/layui.js"></script>
@@ -140,7 +147,7 @@
                         sort: true,
                         templet:
                             function (d) {
-                                return  `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
+                                return `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
                             }
                     },
                     {
@@ -172,7 +179,7 @@
                     },
                 ],
             ],
-            limits: [20, 25, 40, 80, 200, 300, 500,10000000],
+            limits: [20, 25, 40, 80, 200, 300, 500, 10000000],
             limit: 25,
             id: "testReload",
             page: true,
@@ -201,6 +208,34 @@
             },
         });
 
+        function limitConcurrency(items, limit, worker) {
+            return new Promise((resolve) => {
+                let index = 0;
+                let running = 0;
+
+                function runNext() {
+                    if (index === items.length && running === 0) {
+                        resolve();
+                        return;
+                    }
+
+                    while (running < limit && index < items.length) {
+                        const item = items[index++];
+                        running++;
+
+                        worker(item)
+                            .always(() => {  // ← 关键修复点
+                                running--;
+                                runNext();
+                            });
+                    }
+                }
+
+                runNext();
+            });
+        }
+
+
         // 工具栏事件
         table.on('toolbar(test)', function (obj) {
             var id = obj.config.id;
@@ -208,85 +243,93 @@
             var over = 0;
             switch (obj.event) {
                 case 'multiFav':
-                    data.forEach((pre) => {
-                        $.ajax({
-                            url: `/fav-status/up/` + pre.id  ,
-                            type: "post",
-                            success: function (res) {
-                                over += 1
-                                $("#multiFav").text(data.length - over)
-                                if (data.length - over === 0) {
-                                    $('#search').click()
-                                }
-                            }
+                    limitConcurrency(data, 10, (pre) => {
+                        return $.ajax({
+                            url: `/fav-status/up/` + pre.id,
+                            type: "post"
+                        }).then(() => {
+                            over++;
+                            $("#toRead").text(data.length - over)
                         });
-                    })
+                    }).then(() => {
+                        if (data.length - over === 0) {
+                            $('#search').click()
+                        }
+                    });
                     break;
                 case 'multiUnFav':
-                    data.forEach((pre) => {
-                        $.ajax({
+                    limitConcurrency(data, 10, (pre) => {
+                        return $.ajax({
                             url: `/fav-status/down/` + pre.id,
-                            type: "post",
-                            success: function (res) {
-                                over += 1
-                                $("#multiUnFav").text(data.length - over)
-                                if (data.length - over === 0) {
-                                    $('#search').click()
-                                }
-                            }
+                            type: "post"
+                        }).then(() => {
+                            over++;
+                            $("#toRead").text(data.length - over)
                         });
-                    })
+                    }).then(() => {
+                        if (data.length - over === 0) {
+                            $('#search').click()
+                        }
+                    });
                     break;
                 case 'multiUnFavAndRead':
-                    data.forEach((pre) => {
-                        $.ajax({
+                    limitConcurrency(data, 10, (pre) => {
+                        return $.ajax({
                             url: `/fav-status/down/` + pre.id,
-                            type: "post",
-                            success: function (res) {
-                                over += 1
-                                $("#multiUnFavAndRead").text(data.length - over)
-                                if (data.length - over === 0) {
-                                    $('#search').click()
-                                }
-                            }
+                            type: "post"
+                        }).then(() => {
+                            over++;
+                            $("#toRead").text(data.length - over)
                         });
-                        $.ajax({
+                    }).then(() => {
+                        if (data.length - over === 0) {
+                            $('#search').click()
+                        }
+                    });
+
+                    limitConcurrency(data, 10, (pre) => {
+                        return $.ajax({
                             url: `/read-status/up/` + pre.id,
-                            type: "post",
-                            success: function (res) {
-                            }
+                            type: "post"
+                        }).then(() => {
+                            over++;
+                            $("#toRead").text(data.length - over)
                         });
-                    })
+                    }).then(() => {
+                        if (data.length - over === 0) {
+                            $('#search').click()
+                        }
+                    });
                     break;
                 case 'toRead':
-                    data.forEach((pre) => {
-                        $.ajax({
+                    limitConcurrency(data, 10, (pre) => {
+                        return $.ajax({
                             url: `/read-status/up/` + pre.id,
-                            type: "post",
-                            success: function (res) {
-                                over += 1
-                                $("#toRead").text(data.length - over)
-                                if (data.length - over === 0) {
-                                    $('#search').click()
-                                }
-                            }
+                            type: "post"
+                        }).then(() => {
+                            over++;
+                            $("#toRead").text(data.length - over)
                         });
-                    })
+                    }).then(() => {
+                        if (data.length - over === 0) {
+                            $('#search').click()
+                        }
+                    });
                     break;
                 case 'toNotRead':
-                    data.forEach((pre) => {
-                        $.ajax({
+                    limitConcurrency(data, 10, (pre) => {
+                        return $.ajax({
                             url: `/read-status/down/` + pre.id,
-                            type: "post",
-                            success: function (res) {
-                                over += 1
-                                $("#toNotRead").text(data.length - over)
-                                if (data.length - over === 0) {
-                                    $('#search').click()
-                                }
-                            }
+                            type: "post"
+                        }).then(() => {
+                            over++;
+                            $("#toRead").text(data.length - over)
                         });
-                    })
+                    }).then(() => {
+                        if (data.length - over === 0) {
+                            $('#search').click()
+                        }
+                    });
                     break;
                 case 'multiOpen':
                     data.forEach((pre) => {
