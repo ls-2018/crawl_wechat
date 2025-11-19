@@ -99,6 +99,20 @@
         read: 'N',
         search: ''
     }
+    function initLazyLoad() {
+        const imgs = document.querySelectorAll('input.lazy-img');
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src; // 替换真实图片
+                    img.classList.remove('lazy-img');
+                    io.unobserve(img);
+                }
+            });
+        });
+        imgs.forEach(img => io.observe(img));
+    }
 
     layui.use(['table', 'layer', 'form',], function () {
         var table = layui.table;
@@ -147,7 +161,7 @@
                         sort: true,
                         templet:
                             function (d) {
-                                return `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer"  type="image" src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
+                                return `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer" class="lazy-img" type="image" data-src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
                             }
                     },
                     {
@@ -201,7 +215,8 @@
                     if (res.data[i].id === "${dsBoard.id}") {
                         $(".layui-table tbody tr").eq(i).attr({"style": "background:#5FB878;color:#FFFFFF"});
                     }
-                }
+                };
+                initLazyLoad();
             },
             error: function (res, msg) {
                 console.log(res, msg);
