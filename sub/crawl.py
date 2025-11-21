@@ -66,7 +66,8 @@ class Crawl:
                     # self.save_link_cache(links)
                     if callback:
                         callback()
-                    send_message("sync", "over")
+                    if len(need_insert) > 0:
+                        send_message("Sync", f"新增{len(need_insert)}条数据")
                     clean()
         except Exception as e:
             logger.error(e)
