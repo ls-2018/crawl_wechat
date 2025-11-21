@@ -36,7 +36,8 @@ class PomodoroApp(rumps.App):
         self.crawl_button = rumps.MenuItem(title=self.config["crawl"], callback=self.crawl_wechat)
         self.open_button = rumps.MenuItem(title=self.config["display"], callback=self.open)
         self.backup_button = rumps.MenuItem(title=self.config["backup"], callback=self.backup)
-
+        self.timer = rumps.Timer(self.crawl_wechat, 60)
+        self.timer.start()
         self.app.menu = [
             self.crawl_button,
             self.server_button,
@@ -48,6 +49,7 @@ class PomodoroApp(rumps.App):
         self.crawl = Crawl()
         self.crawl_thread = None
         self.ui_server_thread = None
+
 
     def backup(self, sender):
         d = datetime.datetime.now()
@@ -88,7 +90,7 @@ class PomodoroApp(rumps.App):
             title=self.app_name, subtitle=subtitle, message=message
         )
 
-    def crawl_wechat(self, obj):
+    def crawl_wechat(self, sender):
         self.crawl_button.state = not self.crawl_button.state
         if self.crawl_button.state:
             self.crawl_thread = threading.Thread(
