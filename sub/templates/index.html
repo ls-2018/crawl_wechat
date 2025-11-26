@@ -100,7 +100,7 @@
         search: ''
     }
     function initLazyLoad() {
-        const imgs = document.querySelectorAll('input.lazy-img');
+        const imgs = document.querySelectorAll('img.lazy-img');
         const io = new IntersectionObserver(entries => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -161,7 +161,10 @@
                         sort: true,
                         templet:
                             function (d) {
-                                return `<input referrer="no-referrer|origin|unsafe-url" referrerPolicy="no-referrer" class="lazy-img" type="image" data-src="${d.cover}" alt="xx" style="width:50px;height:20px"> <a href="${d.link}" target="_blank" style='color:blue'>${d.title}</a>`
+                            return   `<a href="${d.link}" target="_blank" style='color:blue'>
+                                          <img referrerPolicy="no-referrer" class="lazy-img" type="image" data-src="${d.cover}" style="width:50px;height:20px">
+                                          ${d.title}
+                                      </a>`
                             }
                     },
                     {
