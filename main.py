@@ -13,6 +13,7 @@ from sub.insert import logger
 from sub.server import Server
 
 port = random.randint(18000, 19000)
+port = 18673
 
 off_check = False
 
@@ -55,7 +56,7 @@ class PomodoroApp(rumps.App):
         d = datetime.datetime.now()
         date = f"{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}"
         cmd = (
-            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {db_user} '
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql:8 bash -c "mysqldump -u {db_user} '
             f'--password={db_password} '
             f'-h {db_host} '
             f'-P {db_port} '
@@ -67,7 +68,7 @@ class PomodoroApp(rumps.App):
         self.send_message(f"backup {query_db}", out)
 
         cmd = (
-            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql bash -c "mysqldump -u {db_user} '
+            f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ registry.cn-hangzhou.aliyuncs.com/acejilam/mysql:8 bash -c "mysqldump -u {db_user} '
             f'--password={db_password} '
             f'-h {db_host} '
             f'-P {db_port} '
