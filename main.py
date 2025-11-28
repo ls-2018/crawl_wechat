@@ -13,7 +13,6 @@ from sub.insert import logger
 from sub.server import Server
 
 port = random.randint(18000, 19000)
-port = 18673
 
 off_check = False
 

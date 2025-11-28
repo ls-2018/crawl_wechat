@@ -168,7 +168,7 @@ class Server:
         self.port = port
 
     def openChrome(self):
-        os.system(f'open -a "/Applications/Google Chrome.app" http://127.0.0.1:{self.port}')
+        os.system(f'open -a "/Applications/Chromium.app" http://127.0.0.1:{self.port}')
 
 
 if __name__ == '__main__':
