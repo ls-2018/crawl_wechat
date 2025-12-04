@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link href="static/css/layui.css" rel="stylesheet"/>
     <link rel="icon" sizes="any" href="/static/favicon.ico">
+    <!-- SocketIO客户端库 -->
+    <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>-->
+    <script src="static/socket.io.min.js"></script>
 </head>
 <body>
 
@@ -99,6 +102,7 @@
         read: 'N',
         search: ''
     }
+
     function initLazyLoad() {
         const imgs = document.querySelectorAll('img.lazy-img');
         const io = new IntersectionObserver(entries => {
@@ -161,7 +165,7 @@
                         sort: true,
                         templet:
                             function (d) {
-                            return   `<a href="${d.link}" target="_blank" style='color:blue'>
+                                return `<a href="${d.link}" target="_blank" style='color:blue'>
                                           <img referrerPolicy="no-referrer" class="lazy-img" type="image" data-src="${d.cover}" style="width:50px;height:20px">
                                           ${d.title}
                                       </a>`
@@ -218,7 +222,8 @@
                     if (res.data[i].id === "${dsBoard.id}") {
                         $(".layui-table tbody tr").eq(i).attr({"style": "background:#5FB878;color:#FFFFFF"});
                     }
-                };
+                }
+                ;
                 initLazyLoad();
             },
             error: function (res, msg) {
@@ -375,6 +380,41 @@
             if (e.keyCode === 13) {
                 $('#search').click()
             }
+        });
+
+        // 初始化WebSocket连接
+        var socket = io('http://{{addr}}:{{port}}');
+        console.log('正在连接WebSocket服务器:', 'http://{{addr}}:{{port}}');
+
+        // 连接失败事件
+        socket.on('connect_error', function (error) {
+            console.error('WebSocket连接失败:', error);
+        });
+
+        // 连接超时事件
+        socket.on('connect_timeout', function () {
+            console.error('WebSocket连接超时');
+        });
+
+        // 连接成功事件
+        socket.on('connect', function () {
+            console.log('WebSocket连接已建立');
+        });
+
+        // 接收服务器发送的刷新消息
+        socket.on('sync_data', function (data) {
+            console.log('收到同步消息:', data);
+            if (data.action === 'refresh') {
+                // 主动刷新页面
+                $('#search').click();
+                // 可以添加通知提示
+                layer.msg(data.message, {icon: 1});
+            }
+        });
+
+        // 连接断开事件
+        socket.on('disconnect', function () {
+            console.log('WebSocket连接已断开');
         });
         form.on('checkbox(demo-checkbox-filter)', function (data) {
             var elem = data.elem; // 获得 checkbox 原始 DOM 对象

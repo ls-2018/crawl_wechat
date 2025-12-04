@@ -45,8 +45,10 @@ class PomodoroApp(rumps.App):
             self.backup_button,
         ]
         global port
-        self.ui_server = Server(port)
-        self.crawl = Crawl()
+        # 创建队列用于进程间通信
+        self.queue = multiprocessing.Queue()
+        self.ui_server = Server(port, self.queue)
+        self.crawl = Crawl(self.queue)
         self.crawl_thread = None
         self.ui_server_thread = None
 

@@ -1,5 +1,3 @@
-import os
-
 from sub.config import *
 from sub.insert import mysql, clean, insert, ArticleItem
 from sub.log import get_logger
@@ -8,14 +6,13 @@ logger = get_logger()
 
 
 class Crawl:
-    def __init__(self):
+    def __init__(self, queue=None):
         self.handled_count = 0
         self.count = 0
         self.set_title = None
         self.lastFile = ''
         self.user_map = {}
-
-
+        self.queue = queue
 
     def run(self, callback, set_title, send_message):
         try:
@@ -46,10 +43,13 @@ class Crawl:
                     for item in need_insert:
                         if self.set_title:
                             self.set_title("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
+                        account_name = self.user_map.get(item['fakeid'], None)
+                        if account_name is None:
+                            continue
                         obj = ArticleItem(
                             aid=item['aid'],
                             fakeid=item['fakeid'],
-                            account_name=self.user_map[item['fakeid']],
+                            account_name=account_name,
                             author_name=item['author_name'],
                             title=item['title'],
                             cover=item['cover'],
@@ -68,6 +68,10 @@ class Crawl:
                         callback()
                     if len(need_insert) > 0:
                         send_message("Sync", f"新增{len(need_insert)}条数据")
+                        # 通过队列发送消息到服务器进程
+                        if self.queue:
+                            logger.debug(f"向队列发送消息: {len(need_insert)}")
+                            self.queue.put(len(need_insert))
                     clean()
         except Exception as e:
             logger.error(e)

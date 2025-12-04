@@ -4,6 +4,7 @@ import time
 
 from flask import Flask, request, render_template
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 
 from sub.config import *
 from sub.insert import mysql
@@ -30,9 +31,33 @@ app.logger = get_logger()
 CORS(app, resources={
     r'*': {'origins': '*', 'methods': 'GET', 'allow_headers': 'Content-Type', 'supports_credentials': True}})
 
-port = 0
+# 初始化SocketIO
+ws = SocketIO(app, cors_allowed_origins="*")
 
 remote_addr = '127.0.0.1'
+
+
+# WebSocket事件处理
+@ws.on('connect')
+def handle_connect():
+    print('Client connected')
+    emit('server_response', {'data': 'Connected'})
+
+
+@ws.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+
+# 发送消息给所有客户端的函数
+def send_websocket_message(data):
+    logger.debug(f"websocket message: {data}")
+    ws.emit('sync_data', data)
+
+
+# 公开函数供外部调用
+def notify_ui_sync(count):
+    send_websocket_message({'message': f'新增{count}条数据', 'action': 'refresh'})
 
 
 @app.route('/')
@@ -90,7 +115,7 @@ def data():
             args.append(0)
         else:
             args.append(1)
-
+    import json
     accounts = json.loads(request.args.get('account', "[]"))
     if len(accounts) > 0:
         if xxx != 'where':
@@ -111,7 +136,8 @@ def data():
         asd.append(limit)
         asd.append(offset)
         cursor.execute(
-            f"select * from `{query_db}`.`{query_table}`  {xxx} order by `create_time` desc limit %s offset %s ", args=asd
+            f"select * from `{query_db}`.`{query_table}`  {xxx} order by `create_time` desc limit %s offset %s ",
+            args=asd
         )
         res = cursor.fetchall()
         b['rows']["item"] = res
@@ -161,11 +187,35 @@ class Server:
     def run(self):
         global port
         port = self.port
-        app.run("0.0.0.0", self.port, debug=False)
+        
+        # 启动一个线程监听队列
+        if self.queue:
+            import threading
+            queue_thread = threading.Thread(target=self.listen_queue)
+            queue_thread.daemon = True
+            queue_thread.start()
+            logger.debug("启动队列监听线程")
+        
+        ws.run(app, host="0.0.0.0", port=self.port, debug=False, allow_unsafe_werkzeug=True)
         time.sleep(10)
 
-    def __init__(self, port):
+    def __init__(self, port, queue=None):
         self.port = port
+        self.queue = queue
+    
+    def listen_queue(self):
+        """监听队列中的消息并发送WebSocket通知"""
+        logger.debug("开始监听队列")
+        while True:
+            try:
+                # 阻塞等待队列中的消息
+                count = self.queue.get()
+                logger.debug(f"从队列接收到消息: {count}")
+                # 发送WebSocket通知
+                send_websocket_message({'message': f'新增{count}条数据', 'action': 'refresh'})
+            except Exception as e:
+                logger.error(f"处理队列消息时出错: {e}")
+                time.sleep(1)  # 出错后暂停1秒再继续
 
     def openChrome(self):
         os.system(f'open -a "/Applications/Chromium.app" http://127.0.0.1:{self.port}')
@@ -173,4 +223,4 @@ class Server:
 
 if __name__ == '__main__':
     port = 18888
-    app.run("0.0.0.0", 18888, debug=True)
+    ws.run(app, "0.0.0.0", 18888, debug=True, allow_unsafe_werkzeug=True)

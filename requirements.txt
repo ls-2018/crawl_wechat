@@ -12,6 +12,6 @@ modulegraph>=0.19.6
 macholib>=1.16.2
 flask_cors==4.0.1
 pip
-docker
 py2app
 setuptools==70.3.0
+flask_socketio==5.5.1
