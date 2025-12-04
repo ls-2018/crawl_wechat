@@ -31,8 +31,8 @@ app.logger = get_logger()
 CORS(app, resources={
     r'*': {'origins': '*', 'methods': 'GET', 'allow_headers': 'Content-Type', 'supports_credentials': True}})
 
-# 初始化SocketIO
-ws = SocketIO(app, cors_allowed_origins="*")
+# 初始化SocketIO，显式指定异步模式为threading
+ws = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 remote_addr = '127.0.0.1'
 

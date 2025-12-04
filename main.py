@@ -115,6 +115,7 @@ class PomodoroApp(rumps.App):
 
     def call_back(self):
         self.app.title = ""
+
         self.crawl_button.state = not self.crawl_button.state
 
     def run(self):

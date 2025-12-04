@@ -14,7 +14,16 @@ DATA_FILES = [
 OPTIONS = {
     'iconfile': 'bj.ico',
     'packages': ["sub"],
-    "includes": ["os", "platform","subprocess"]
+    "includes": [
+        "os",
+        "platform",
+        "subprocess",
+        # "gevent",
+        # "geventwebsocket",
+        # "gevent.ssl",
+        # "gevent.builtins",
+        "engineio.async_drivers.threading"
+    ]
 }
 
 setup(
