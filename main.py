@@ -55,7 +55,7 @@ class PomodoroApp(rumps.App):
     def backup(self, sender):
         d = datetime.datetime.now()
         date = f"{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}"
-        img = 'registry.cn-hangzhou.aliyuncs.com/ls-acejilam/ib-yhpmzaevik:5ad6464196a383d799c1787f60061471-8'
+        img = 'ccr.ccs.tencentyun.com/acejilam/ib-zblwujy5oa:5ad6464196a383d799c1787f60061471-8'
         cmd = (
             f'/usr/local/bin/docker run -d --rm -v /etc/hosts:/etc/hosts -v {bak_dir}:/data/ {img} bash -c "mysqldump -u {db_user} '
             f'--password={db_password} '
