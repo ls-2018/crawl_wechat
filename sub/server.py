@@ -41,7 +41,7 @@ remote_addr = '127.0.0.1'
 @ws.on('connect')
 def handle_connect():
     print('Client connected')
-    emit('server_response', {'data': 'Connected'})
+    emit('server_response', {'data': 'Connected'}, broadcast=True)
 
 
 @ws.on('disconnect')
