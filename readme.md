@@ -117,7 +117,7 @@ docker run \
 	-e MYSQL_PORT=13306 \
 	-e MYSQL_LOG_BIN=OFF \
 	-e MYSQL_USER=root \
-	-e MYSQL_PASSWORD=sk3RCBqtWxF2Tg4pawUv \
+	-e MYSQL_PASSWORD=sk3RCBqtWxF2TgpawUv \
 	-e MYSQL_DATABASE=wechat_article_exporter \
 	-p 13000:3000 \
 	-v $exporterPath:/app/.data \
