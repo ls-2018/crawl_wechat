@@ -187,22 +187,14 @@ class Server:
     def run(self):
         global port
         port = self.port
-        
-        # 启动一个线程监听队列
-        if self.queue:
-            import threading
-            queue_thread = threading.Thread(target=self.listen_queue)
-            queue_thread.daemon = True
-            queue_thread.start()
-            logger.debug("启动队列监听线程")
-        
+
         ws.run(app, host="0.0.0.0", port=self.port, debug=False, allow_unsafe_werkzeug=True)
         time.sleep(10)
 
-    def __init__(self, port, queue=None):
-        self.port = port
+    def __init__(self, queue=None):
+        self.port = 13001
         self.queue = queue
-    
+
     def listen_queue(self):
         """监听队列中的消息并发送WebSocket通知"""
         logger.debug("开始监听队列")
@@ -222,5 +214,5 @@ class Server:
 
 
 if __name__ == '__main__':
-    port = 18888
-    ws.run(app, "0.0.0.0", 18888, debug=True, allow_unsafe_werkzeug=True)
+    port = 13001
+    ws.run(app, "0.0.0.0", 13001, debug=True, allow_unsafe_werkzeug=True)

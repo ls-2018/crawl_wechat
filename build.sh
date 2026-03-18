@@ -1,5 +1,2 @@
-py2applet --make-setup main.py bj.ico --iconfile bj.ico
-python3 setup.py py2app -O2
-python3 setup.py py2app -A # 软连接  方便本地开发
-# OPTIONS = {'iconfile': 'bj.ico'}
-# cp admission_letter.py /Applications/admission.app/Contents/MacOS/admission
+docker build -t ccr.ccs.tencentyun.com/ls-2018/wechat:display .
+docker push ccr.ccs.tencentyun.com/ls-2018/wechat:display

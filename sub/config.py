@@ -1,32 +1,17 @@
 import json
 import os.path
 
-_config_path = '/Users/acejilam/Documents/TfBak/config/wechat'
+db_host = os.getenv("DB_HOST",'wechat-mysql')
+db_port = 3306
+db_user = 'root'
+db_password = os.getenv('DB_PASSWORD','dynWKCkOxiKHxIKOsxkw4PtMD30ghUMK')
+db_charset = 'utf8mb4'
 
-try:
-    os.mkdir(_config_path)
-except FileExistsError:
-    pass
-except Exception as e:
-    print(e)
-    pass
+query_db = os.getenv("QUERY_DB",'wechat_query')
+query_table = os.getenv("QUERY_TABLE",'article_info')
 
-_cfg_conf = os.path.join(_config_path, "cfg.json")
+crawl_db = os.getenv("CRAWL_DB",'wechat_article_exporter')
+crawl_article_table = os.getenv("CRAWL_ARTICLE_TABLE",'articles')
+crawl_info_table = os.getenv("CRAWL_INFO_TABLE",'info')
 
-with open(_cfg_conf, 'r', encoding='utf8') as f:
-    _cfg_info = json.loads(f.read())
-
-db_host = _cfg_info["host"]
-db_port = _cfg_info["port"]
-db_user = _cfg_info["user"]
-db_password = _cfg_info["password"]
-db_charset = _cfg_info["charset"]
-
-query_db = _cfg_info["query_db"]
-query_table = _cfg_info["query_table"]
-
-crawl_db = _cfg_info["crawl_db"]
-crawl_article_table = _cfg_info["crawl_article_table"]
-crawl_info_table = _cfg_info["crawl_info_table"]
-
-bak_dir=_cfg_info["bak_dir"]
+bak_dir = os.getenv("BAK_DIR",'/Users/acejilam/script/data/wechat')
