@@ -18,6 +18,9 @@ class Backup:
         logger.info(cmd)
         subprocess.getoutput(cmd)
 
+        #  mysqldump -u root --password={db_password}  -h wechat-mysql -P 3306 wechat_article_exporter > /data/wechat_article_exporter.sql
+        #  mysqldump -u root --password={db_password}  -h wechat-mysql -P 3306 wechat_query > /data/wechat_query.sql
+
         cmd = (
             f'mysqldump -u {db_user} --password={db_password} -h {db_host} -P {db_port} {crawl_db} > /data/{date}-{crawl_db}.sql.pending ;'
             f'mv /data/{date}-{crawl_db}.sql.pending /data/{crawl_db}.sql'
@@ -28,14 +31,14 @@ class Backup:
     def load(self):
         cmd = (
             f'mysql -u {db_user} --password={db_password} -h {db_host} -P {db_port} '
-            f'-e \'DROP DATABASE IF EXISTS wechat_query; DROP DATABASE IF EXISTS wechat_article_exporter;\''
+            f'-e \'DROP DATABASE IF EXISTS {query_db}; DROP DATABASE IF EXISTS {crawl_db};\''
         )
         logger.info(cmd)
         os.system(cmd)
 
         cmd = (
             f'mysql -u {db_user} --password={db_password} -h {db_host} -P {db_port} '
-            f'-e \'CREATE DATABASE IF NOT EXISTS wechat_query; CREATE DATABASE IF NOT EXISTS wechat_article_exporter;\''
+            f'-e \'CREATE DATABASE IF NOT EXISTS {query_db}; CREATE DATABASE IF NOT EXISTS {crawl_db};\''
         )
         logger.info(cmd)
         os.system(cmd)

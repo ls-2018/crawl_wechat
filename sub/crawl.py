@@ -1,3 +1,5 @@
+import time
+
 from sub.config import *
 from sub.db import Backup
 from sub.insert import mysql, clean, insert, ArticleItem
@@ -17,6 +19,11 @@ class Crawl:
         self.backup.load()
 
     def run(self):
+        while True:
+            time.sleep(60)
+            self.timer()
+
+    def timer(self):
         try:
             with mysql(db=crawl_db) as crawl_cursor:
                 with mysql() as cursor:
