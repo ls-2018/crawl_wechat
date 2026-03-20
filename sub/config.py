@@ -4,7 +4,7 @@ import os.path
 db_host = os.getenv("DB_HOST",'wechat-mysql')
 db_port = 3306
 db_user = 'root'
-db_password = os.getenv('DB_PASSWORD','dynWKCkOxiKHxIKOsxkw4PtMD30ghUMK')
+db_password = os.getenv('DB_PASSWORD','')
 db_charset = 'utf8mb4'
 
 query_db = os.getenv("QUERY_DB",'wechat_query')
@@ -14,4 +14,4 @@ crawl_db = os.getenv("CRAWL_DB",'wechat_article_exporter')
 crawl_article_table = os.getenv("CRAWL_ARTICLE_TABLE",'articles')
 crawl_info_table = os.getenv("CRAWL_INFO_TABLE",'info')
 
-bak_dir = os.getenv("BAK_DIR",'/Users/acejilam/script/data/wechat')
+bak_dir = os.getenv("BAK_DIR",'')
