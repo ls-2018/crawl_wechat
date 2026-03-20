@@ -3,9 +3,6 @@ import time
 from sub.config import *
 from sub.db import Backup
 from sub.insert import mysql, clean, insert, ArticleItem
-from sub.log import get_logger
-
-logger = get_logger()
 
 
 class Crawl:
@@ -65,20 +62,20 @@ class Crawl:
                             favorite=0,
                         )
                         links.add(item['link'])
-                        logger.info("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
-                        logger.info(obj)
+                        print("inserting...(%s/%s)" % (self.handled_count, len(need_insert)))
+                        print(obj)
                         insert(cursor, obj)
                         self.handled_count += 1
                     if len(need_insert) > 0:
                         # 通过队列发送消息到服务器进程
                         if self.queue:
-                            logger.debug(f"向队列发送消息: {len(need_insert)}")
+                            print(f"向队列发送消息: {len(need_insert)}")
                             self.queue.put(len(need_insert))
                         self.backup.backup()
 
                     clean()
         except Exception as e:
-            logger.error(e)
+            print(e)
 
     @staticmethod
     def get_link_cache():

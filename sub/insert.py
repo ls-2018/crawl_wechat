@@ -5,9 +5,6 @@ import pymysql
 import pymysql.cursors
 
 from sub.config import *
-from sub.log import get_logger
-
-logger = get_logger()
 
 
 # 定义上下文管理器，连接后自动关闭连接

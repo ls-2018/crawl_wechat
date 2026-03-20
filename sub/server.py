@@ -8,9 +8,6 @@ from flask_socketio import SocketIO, emit
 
 from sub.config import *
 from sub.insert import mysql
-from sub.log import get_logger
-
-logger = get_logger()
 
 TEMPLATE = {
     "status": 200,
@@ -27,7 +24,6 @@ app = Flask(
     static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), "static"),
 )
 
-app.logger = get_logger()
 CORS(app, resources={
     r'*': {'origins': '*', 'methods': 'GET', 'allow_headers': 'Content-Type', 'supports_credentials': True}})
 
@@ -51,7 +47,7 @@ def handle_disconnect():
 
 # 发送消息给所有客户端的函数
 def send_websocket_message(data):
-    logger.debug(f"websocket message: {data}")
+    print(f"websocket message: {data}")
     ws.emit('sync_data', data)
 
 
@@ -197,16 +193,16 @@ class Server:
 
     def listen_queue(self):
         """监听队列中的消息并发送WebSocket通知"""
-        logger.debug("开始监听队列")
+        print("开始监听队列")
         while True:
             try:
                 # 阻塞等待队列中的消息
                 count = self.queue.get()
-                logger.debug(f"从队列接收到消息: {count}")
+                print(f"从队列接收到消息: {count}")
                 # 发送WebSocket通知
                 send_websocket_message({'message': f'新增{count}条数据', 'action': 'refresh'})
             except Exception as e:
-                logger.error(f"处理队列消息时出错: {e}")
+                print(f"处理队列消息时出错: {e}")
                 time.sleep(1)  # 出错后暂停1秒再继续
 
     def openChrome(self):
