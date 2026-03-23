@@ -1,5 +1,6 @@
 import copy
 import os.path
+import threading
 import time
 
 from flask import Flask, request, render_template
@@ -184,8 +185,11 @@ class Server:
         global port
         port = self.port
 
+        # Start queue listener in a background thread
+        listener = threading.Thread(target=self.listen_queue, daemon=True)
+        listener.start()
+
         ws.run(app, host="0.0.0.0", port=self.port, debug=False, allow_unsafe_werkzeug=True)
-        time.sleep(10)
 
     def __init__(self, queue=None):
         self.port = 13001
