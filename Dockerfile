@@ -41,3 +41,5 @@ COPY . .
 
 CMD ["python3","main.py"]
 
+
+#docker build -t ccr.ccs.tencentyun.com/ls-2018/wechat:display .

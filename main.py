@@ -12,7 +12,7 @@ class PomodoroApp:
     def __init__(self, *args, **kwargs):
         self.process = []
         # 创建队列用于进程间通信
-        self.queue = multiprocessing.Queue()
+        self.queue = multiprocessing.Queue(maxsize=100)
         self.ui_server = Server(self.queue)
         self.crawl = Crawl(self.queue)
 

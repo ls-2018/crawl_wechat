@@ -15,3 +15,4 @@ clean.json
 dist
 build
 .eggs
+.env

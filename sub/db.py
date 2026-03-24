@@ -10,8 +10,8 @@ class Backup:
         d = datetime.datetime.now()
         date = f"{d.year}-{d.month}-{d.day}_{d.hour}-{d.minute}"
         cmd = (
-            f'mysqldump -u {db_user} --password={db_password} -h {db_host} -P {db_port} {query_db} > /data/{date}-{query_db}.sql.pending ;'
-            f'mv /data/{date}-{query_db}.sql.pending /data/{query_db}.sql'
+            f'mysqldump -u {db_user} --password={db_password} -h {db_host} -P {db_port} {query_db} > {data_path}/{date}-{query_db}.sql.pending ;'
+            f'mv {data_path}/{date}-{query_db}.sql.pending {data_path}/{query_db}.sql'
         )
         print(cmd)
         subprocess.getoutput(cmd)
@@ -20,8 +20,8 @@ class Backup:
         #  mysqldump -u root --password={db_password}  -h wechat-mysql -P 3306 wechat_query > /data/wechat_query.sql
 
         cmd = (
-            f'mysqldump -u {db_user} --password={db_password} -h {db_host} -P {db_port} {crawl_db} > /data/{date}-{crawl_db}.sql.pending ;'
-            f'mv /data/{date}-{crawl_db}.sql.pending /data/{crawl_db}.sql'
+            f'mysqldump -u {db_user} --password={db_password} -h {db_host} -P {db_port} {crawl_db} > {data_path}/{date}-{crawl_db}.sql.pending ;'
+            f'mv {data_path}/{date}-{crawl_db}.sql.pending {data_path}/{crawl_db}.sql'
         )
         print(cmd)
         subprocess.getoutput(cmd)
@@ -41,10 +41,10 @@ class Backup:
         print(cmd)
         os.system(cmd)
 
-        cmd = f'mysql -u {db_user} --password={db_password} -h {db_host} -P {db_port} {crawl_db} < /data/{crawl_db}.sql'
+        cmd = f'mysql -u {db_user} --password={db_password} -h {db_host} -P {db_port} {crawl_db} < {data_path}/{crawl_db}.sql'
         print(cmd)
         os.system(cmd)
 
-        cmd = f'mysql -u {db_user} --password={db_password} -h {db_host} -P {db_port} {query_db} < /data/{query_db}.sql'
+        cmd = f'mysql -u {db_user} --password={db_password} -h {db_host} -P {db_port} {query_db} < {data_path}/{query_db}.sql'
         print(cmd)
         os.system(cmd)
