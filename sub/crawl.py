@@ -1,3 +1,4 @@
+import multiprocessing
 import time
 
 from sub.config import *
@@ -21,6 +22,7 @@ class Crawl:
             self.timer()
 
     def timer(self):
+        self.backup.backup()
         try:
             with mysql(db=crawl_db) as crawl_cursor:
                 with mysql() as cursor:
@@ -71,7 +73,7 @@ class Crawl:
                         if self.queue:
                             print(f"向队列发送消息: {len(need_insert)}")
                             self.queue.put(len(need_insert))
-                        self.backup.backup()
+
 
                     clean()
         except Exception as e:
@@ -85,3 +87,7 @@ class Crawl:
             for item in cursor.fetchall():
                 links.add(item['link'])
         return links
+
+if __name__ == '__main__':
+    crawl = Crawl(multiprocessing.Queue(maxsize=100))
+    crawl.timer()
