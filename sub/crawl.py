@@ -73,7 +73,7 @@ class Crawl:
                         if self.queue:
                             print(f"向队列发送消息: {len(need_insert)}")
                             self.queue.put(len(need_insert))
-
+                            self.backup.backup()
 
                     clean()
         except Exception as e:
